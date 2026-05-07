@@ -1,0 +1,24 @@
+2026-05-06 17:08:45,904 [INFO] main — [32m[INFO][0m Vector DB is empty — auto-ingesting PDFs…
+2026-05-06 17:10:18,348 [INFO] ingest — [32m[INFO][0m Ingesting: machines_1.pdf
+2026-05-06 17:10:18,486 [INFO] ingest — [32m[INFO][0m Loading embedding model (all-MiniLM-L6-v2)…
+2026-05-06 17:11:38,505 [WARNING] main — [33m[WARNING][0m Could not check/ingest PDFs: 
+2026-05-06 17:11:53,420 [INFO] robot — [32m[INFO][0m Running in desktop/simulation mode (no hardware detected)
+2026-05-06 17:11:58,418 [INFO] robot — [32m[INFO][0m [Robot] Greeting sequence complete
+2026-05-06 17:17:27,107 [INFO] main — [32m[INFO][0m Question [fi]: hello
+2026-05-06 17:17:27,120 [INFO] router — [32m[INFO][0m Retrieving RAG context…
+2026-05-06 17:17:27,238 [WARNING] query — [33m[WARNING][0m ChromaDB collection is empty. Run 'python -m rag.ingest' first.
+2026-05-06 17:17:27,240 [WARNING] router — [33m[WARNING][0m No context found in vector DB — answering from model only
+2026-05-06 17:17:29,691 [INFO] router — [32m[INFO][0m Mode: ONLINE → trying Gemini…
+2026-05-06 17:17:32,551 [WARNING] router — [33m[WARNING][0m Gemini failed (GEMINI_API_KEY is not set in config.py or environment.), falling back to local model…
+2026-05-06 17:17:32,552 [INFO] router — [32m[INFO][0m Mode: OFFLINE → using local Ollama…
+2026-05-06 17:17:35,404 [ERROR] local_llm — [31m[ERROR][0m Ollama error: model 'tinyllama' not found (status code: 404)
+2026-05-06 17:17:35,404 [ERROR] router — [31m[ERROR][0m Local model also failed: model 'tinyllama' not found (status code: 404)
+2026-05-06 17:17:44,332 [INFO] main — [32m[INFO][0m Question [en]: what is a transformer in machines?
+2026-05-06 17:17:44,333 [INFO] router — [32m[INFO][0m Retrieving RAG context…
+2026-05-06 17:17:44,341 [WARNING] query — [33m[WARNING][0m ChromaDB collection is empty. Run 'python -m rag.ingest' first.
+2026-05-06 17:17:44,346 [WARNING] router — [33m[WARNING][0m No context found in vector DB — answering from model only
+2026-05-06 17:17:45,816 [INFO] router — [32m[INFO][0m Mode: ONLINE → trying Gemini…
+2026-05-06 17:17:45,817 [WARNING] router — [33m[WARNING][0m Gemini failed (GEMINI_API_KEY is not set in config.py or environment.), falling back to local model…
+2026-05-06 17:17:45,818 [INFO] router — [32m[INFO][0m Mode: OFFLINE → using local Ollama…
+2026-05-06 17:17:48,051 [ERROR] local_llm — [31m[ERROR][0m Ollama error: model 'tinyllama' not found (status code: 404)
+2026-05-06 17:17:48,051 [ERROR] router — [31m[ERROR][0m Local model also failed: model 'tinyllama' not found (status code: 404)

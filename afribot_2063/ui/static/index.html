@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AfriBot-2063 | AI Teacher System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Sans+Ethiopic:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════════════════
+   DESIGN SYSTEM — Ethiopian Night Sky palette
+   Deep indigo + amber gold + signal green
+═══════════════════════════════════════════════════════ */
+:root {
+  --ink:         #080c18;
+  --ink-2:       #0e1628;
+  --ink-3:       #141d35;
+  --panel:       #111827;
+  --panel-2:     #1a2540;
+  --border:      #1e2d50;
+  --border-hi:   #2a3f6e;
+  --gold:        #f0a500;
+  --gold-dim:    #a87200;
+  --gold-glow:   rgba(240,165,0,0.15);
+  --green:       #00d68f;
+  --green-dim:   rgba(0,214,143,0.12);
+  --red:         #ff5c5c;
+  --red-dim:     rgba(255,92,92,0.12);
+  --blue:        #4d9fff;
+  --text-hi:     #e8edf8;
+  --text-mid:    #8899bb;
+  --text-lo:     #445577;
+  --radius:      10px;
+  --radius-lg:   16px;
+  --font-ui:     'Syne', sans-serif;
+  --font-mono:   'Space Mono', monospace;
+  --font-eth:    'Noto Sans Ethiopic', 'Syne', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--ink);
+  color: var(--text-hi);
+  font-family: var(--font-ui);
+  overflow: hidden;
+}
+
+/* ── Noise overlay ────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9999; opacity: 0.5;
+}
+
+/* ── Layout ──────────────────────────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: 260px 1fr 300px;
+  grid-template-rows: 56px 1fr;
+  grid-template-areas:
+    "header  header  header"
+    "sidebar main    rag";
+  height: 100vh;
+  gap: 1px;
+  background: var(--border);
+}
+
+/* ── Header ──────────────────────────────────────── */
+header {
+  grid-area: header;
+  background: var(--ink-2);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 1.05rem; font-weight: 800; letter-spacing: 1px;
+  color: var(--gold);
+}
+.logo-icon {
+  width: 32px; height: 32px;
+  background: var(--gold);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  animation: pulse-logo 3s ease-in-out infinite;
+}
+@keyframes pulse-logo {
+  0%,100% { box-shadow: 0 0 0 0 rgba(240,165,0,0); }
+  50%      { box-shadow: 0 0 18px 4px rgba(240,165,0,0.35); }
+}
+
+.header-subtitle {
+  font-size: 0.65rem;
+  color: var(--text-mid);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+
+.header-spacer { flex: 1; }
+
+/* Status pills */
+.pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 999px;
+  font-size: 0.68rem; font-weight: 600;
+  font-family: var(--font-mono); letter-spacing: 0.5px;
+  border: 1px solid;
+}
+.pill-online  { background: var(--green-dim); color: var(--green);  border-color: rgba(0,214,143,0.3); }
+.pill-offline { background: var(--red-dim);   color: var(--red);    border-color: rgba(255,92,92,0.3); }
+.pill-gem     { background: rgba(77,159,255,.1); color: var(--blue); border-color: rgba(77,159,255,0.3); }
+.pill-local   { background: rgba(240,165,0,.1);  color: var(--gold); border-color: rgba(240,165,0,0.3); }
+.pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: blink 2s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── Sidebar ─────────────────────────────────────── */
+.sidebar {
+  grid-area: sidebar;
+  background: var(--ink-2);
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.side-section { }
+.side-title {
+  font-size: 0.6rem; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--text-lo); font-family: var(--font-mono);
+  margin-bottom: 10px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* System metric */
+.metric-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; font-size: 0.78rem;
+}
+.metric-label { color: var(--text-mid); }
+.metric-val   { color: var(--text-hi); font-family: var(--font-mono); font-size: 0.72rem; }
+
+/* Mini progress bar */
+.bar-wrap { background: var(--ink-3); border-radius: 4px; height: 4px; margin-top: 3px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; background: var(--gold); transition: width 0.8s ease; }
+.bar-fill.hi { background: var(--red); }
+
+/* Mode toggle */
+.mode-toggle {
+  display: flex; gap: 6px;
+  background: var(--ink-3);
+  border-radius: var(--radius);
+  padding: 4px;
+}
+.mode-btn {
+  flex: 1; padding: 7px; border-radius: 7px;
+  border: none; cursor: pointer; font-family: var(--font-ui);
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.5px;
+  transition: all 0.2s;
+  background: transparent; color: var(--text-mid);
+}
+.mode-btn.active {
+  background: var(--panel-2);
+  color: var(--gold);
+  box-shadow: 0 0 12px rgba(240,165,0,0.2);
+}
+
+/* Quick questions */
+.quick-btn {
+  width: 100%; text-align: left; padding: 9px 11px;
+  background: var(--ink-3); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text-mid);
+  font-size: 0.76rem; cursor: pointer;
+  transition: all 0.18s; margin-bottom: 5px;
+  font-family: var(--font-ui);
+  line-height: 1.4;
+}
+.quick-btn:hover {
+  background: var(--panel-2); color: var(--text-hi);
+  border-color: var(--gold-dim); transform: translateX(3px);
+}
+.quick-btn .lang-flag { margin-right: 5px; font-size: 0.8em; }
+
+/* Settings */
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 0;
+}
+.toggle-label { font-size: 0.77rem; color: var(--text-mid); }
+.toggle {
+  width: 36px; height: 20px; border-radius: 10px;
+  background: var(--ink-3); border: 1px solid var(--border);
+  position: relative; cursor: pointer; transition: background 0.2s;
+  flex-shrink: 0;
+}
+.toggle.on { background: var(--gold); border-color: var(--gold); }
+.toggle::after {
+  content: ''; position: absolute;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: white; top: 2px; left: 2px;
+  transition: left 0.2s;
+}
+.toggle.on::after { left: 18px; }
+
+/* DB info */
+.db-tag {
+  display: inline-block; padding: 2px 7px;
+  background: var(--ink-3); border: 1px solid var(--border);
+  border-radius: 4px; font-size: 0.65rem;
+  font-family: var(--font-mono); color: var(--text-mid);
+  margin: 2px 2px 2px 0;
+}
+
+/* Ingest button */
+.btn-ingest {
+  width: 100%; padding: 8px; border-radius: 8px;
+  background: transparent; border: 1px solid var(--border-hi);
+  color: var(--text-mid); font-family: var(--font-ui);
+  font-size: 0.75rem; cursor: pointer; transition: all 0.2s;
+}
+.btn-ingest:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-glow); }
+
+/* ── Main chat area ───────────────────────────────── */
+.main {
+  grid-area: main;
+  background: var(--ink);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-area {
+  flex: 1; overflow-y: auto; padding: 20px 24px;
+  display: flex; flex-direction: column; gap: 16px;
+  scroll-behavior: smooth;
+}
+
+/* Scrollbar */
+.chat-area::-webkit-scrollbar { width: 4px; }
+.chat-area::-webkit-scrollbar-track { background: transparent; }
+.chat-area::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 4px; }
+
+/* Welcome card */
+.welcome-card {
+  margin: auto;
+  text-align: center;
+  padding: 40px 24px;
+  max-width: 480px;
+  animation: fade-up 0.6s ease both;
+}
+.welcome-hex {
+  width: 80px; height: 80px; margin: 0 auto 20px;
+  background: linear-gradient(135deg, var(--gold), #ffcc44);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem;
+  animation: spin-slow 20s linear infinite;
+}
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+.welcome-title { font-size: 1.6rem; font-weight: 800; color: var(--gold); margin-bottom: 8px; }
+.welcome-sub { font-size: 0.85rem; color: var(--text-mid); line-height: 1.6; margin-bottom: 20px; }
+.welcome-tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.welcome-tag {
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--ink-3); border: 1px solid var(--border);
+  font-size: 0.7rem; color: var(--text-mid);
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Message bubbles */
+.msg { display: flex; gap: 10px; animation: fade-up 0.3s ease both; max-width: 100%; }
+.msg.user { flex-direction: row-reverse; }
+
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--panel-2); border: 1px solid var(--border-hi);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0; align-self: flex-end;
+}
+.msg.user .avatar { background: var(--gold-glow); border-color: var(--gold-dim); }
+
+.bubble {
+  max-width: 72%; padding: 12px 15px;
+  border-radius: 14px; line-height: 1.65;
+  font-size: 0.875rem;
+}
+.msg.user .bubble {
+  background: var(--panel-2);
+  border: 1px solid var(--border-hi);
+  border-bottom-right-radius: 3px;
+  color: var(--text-hi);
+}
+.msg.bot .bubble {
+  background: var(--ink-2);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 3px;
+  color: var(--text-hi);
+}
+.msg.bot.am .bubble { font-family: var(--font-eth); font-size: 0.92rem; line-height: 1.8; }
+
+.bubble-meta {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 7px; padding-top: 7px;
+  border-top: 1px solid var(--border);
+  font-size: 0.65rem; color: var(--text-lo);
+  font-family: var(--font-mono);
+}
+.source-badge {
+  padding: 2px 7px; border-radius: 4px;
+  font-size: 0.62rem; font-weight: 700;
+}
+.badge-gemini { background: rgba(77,159,255,.15); color: var(--blue); }
+.badge-local  { background: rgba(240,165,0,.12);  color: var(--gold); }
+.badge-fallback { background: rgba(255,92,92,.12); color: var(--red); }
+
+/* Thinking animation */
+.thinking {
+  display: flex; gap: 5px; align-items: center; padding: 12px 15px;
+  background: var(--ink-2); border: 1px solid var(--border);
+  border-radius: 14px; border-bottom-left-radius: 3px;
+  width: fit-content;
+}
+.dot-wave span {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--gold); display: inline-block;
+  animation: wave 1.2s ease-in-out infinite;
+}
+.dot-wave span:nth-child(2) { animation-delay: 0.15s; }
+.dot-wave span:nth-child(3) { animation-delay: 0.30s; }
+@keyframes wave {
+  0%,60%,100% { transform: translateY(0); opacity: 0.4; }
+  30%          { transform: translateY(-6px); opacity: 1; }
+}
+
+/* ── Input area ───────────────────────────────────── */
+.input-area {
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--ink-2);
+}
+
+.input-row {
+  display: flex; gap: 10px; align-items: flex-end;
+}
+
+.input-wrap {
+  flex: 1; position: relative;
+}
+.lang-detect-badge {
+  position: absolute; top: 10px; right: 12px;
+  font-size: 0.62rem; font-family: var(--font-mono);
+  color: var(--text-lo); background: var(--ink-3);
+  padding: 2px 7px; border-radius: 4px;
+  pointer-events: none;
+  transition: color 0.2s;
+}
+.lang-detect-badge.active { color: var(--gold); }
+
+textarea#question {
+  width: 100%; min-height: 52px; max-height: 140px;
+  background: var(--ink-3); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 90px 14px 16px;
+  color: var(--text-hi); font-family: var(--font-ui);
+  font-size: 0.9rem; resize: none; outline: none;
+  transition: border-color 0.2s;
+  line-height: 1.5;
+}
+textarea#question:focus { border-color: var(--gold); }
+textarea#question::placeholder { color: var(--text-lo); }
+
+/* Action buttons */
+.btn-icon {
+  width: 44px; height: 44px; border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--ink-3); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; transition: all 0.18s; flex-shrink: 0;
+  color: var(--text-mid);
+}
+.btn-icon:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-glow); }
+.btn-icon.recording { border-color: var(--red); color: var(--red); background: var(--red-dim); animation: rec-pulse 1s ease-in-out infinite; }
+@keyframes rec-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,92,92,0); } 50% { box-shadow: 0 0 0 6px rgba(255,92,92,0.2); } }
+
+.btn-send {
+  height: 44px; padding: 0 20px;
+  background: var(--gold); border: none; border-radius: var(--radius);
+  color: var(--ink); font-family: var(--font-ui); font-weight: 800;
+  font-size: 0.82rem; cursor: pointer; transition: all 0.18s;
+  letter-spacing: 0.5px; flex-shrink: 0;
+}
+.btn-send:hover { background: #ffb800; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(240,165,0,0.35); }
+.btn-send:disabled { opacity: 0.5; transform: none; cursor: not-allowed; }
+
+/* Input hints */
+.input-hints {
+  display: flex; gap: 12px; margin-top: 8px;
+  font-size: 0.67rem; color: var(--text-lo); font-family: var(--font-mono);
+}
+
+/* Recording indicator */
+.rec-bar {
+  display: none; align-items: center; gap: 8px;
+  padding: 8px 12px; margin-bottom: 8px;
+  background: var(--red-dim); border: 1px solid rgba(255,92,92,0.3);
+  border-radius: 8px; font-size: 0.75rem; color: var(--red);
+  font-family: var(--font-mono);
+}
+.rec-bar.active { display: flex; }
+.rec-wave { display: flex; gap: 2px; align-items: center; }
+.rec-wave span {
+  width: 2px; border-radius: 2px; background: var(--red);
+  animation: rec-wave 0.8s ease-in-out infinite alternate;
+}
+.rec-wave span:nth-child(1) { height: 8px; }
+.rec-wave span:nth-child(2) { height: 14px; animation-delay: 0.1s; }
+.rec-wave span:nth-child(3) { height: 10px; animation-delay: 0.2s; }
+.rec-wave span:nth-child(4) { height: 16px; animation-delay: 0.05s; }
+.rec-wave span:nth-child(5) { height: 8px;  animation-delay: 0.15s; }
+@keyframes rec-wave { from { transform: scaleY(0.5); } to { transform: scaleY(1.2); } }
+
+/* ── RAG Panel ──────────────────────────────────── */
+.rag-panel {
+  grid-area: rag;
+  background: var(--ink-2);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+.rag-header {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.rag-title {
+  font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-lo); font-family: var(--font-mono);
+}
+.rag-count {
+  font-size: 0.68rem; font-family: var(--font-mono);
+  color: var(--gold); background: var(--gold-glow);
+  padding: 2px 8px; border-radius: 4px;
+}
+
+.rag-tabs {
+  display: flex; border-bottom: 1px solid var(--border);
+}
+.rag-tab {
+  flex: 1; padding: 9px; font-size: 0.7rem;
+  text-align: center; cursor: pointer;
+  color: var(--text-lo); background: none; border: none;
+  font-family: var(--font-ui); transition: all 0.18s;
+  border-bottom: 2px solid transparent;
+}
+.rag-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+.rag-body { flex: 1; overflow-y: auto; padding: 12px; }
+.rag-body::-webkit-scrollbar { width: 3px; }
+.rag-body::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
+
+.rag-tab-content { display: none; }
+.rag-tab-content.active { display: block; }
+
+/* Chunk card */
+.chunk-card {
+  background: var(--ink-3); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 11px;
+  margin-bottom: 8px; cursor: pointer;
+  transition: all 0.18s;
+}
+.chunk-card:hover { border-color: var(--gold-dim); background: var(--panel-2); }
+.chunk-src {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 5px;
+}
+.chunk-filename { font-size: 0.65rem; color: var(--gold); font-family: var(--font-mono); }
+.chunk-score {
+  font-size: 0.62rem; font-family: var(--font-mono);
+  color: var(--text-lo); padding: 1px 5px;
+  background: var(--ink); border-radius: 3px;
+}
+.chunk-score.hi { color: var(--green); }
+.chunk-text {
+  font-size: 0.73rem; color: var(--text-mid); line-height: 1.55;
+  display: -webkit-box; -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* Empty state */
+.rag-empty {
+  text-align: center; padding: 40px 16px;
+  color: var(--text-lo); font-size: 0.78rem;
+}
+.rag-empty .icon { font-size: 2rem; margin-bottom: 10px; opacity: 0.5; }
+
+/* RAG Search */
+.rag-search-wrap { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.rag-search {
+  width: 100%; background: var(--ink-3); border: 1px solid var(--border);
+  border-radius: 6px; padding: 7px 10px; color: var(--text-hi);
+  font-family: var(--font-mono); font-size: 0.75rem; outline: none;
+}
+.rag-search:focus { border-color: var(--gold); }
+
+/* Speech panel */
+.speech-controls {
+  padding: 12px; border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.speech-title {
+  font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-lo); font-family: var(--font-mono);
+}
+.speech-btns { display: flex; gap: 6px; }
+.btn-speech {
+  flex: 1; padding: 7px 8px; border-radius: 7px;
+  border: 1px solid var(--border); background: var(--ink-3);
+  color: var(--text-mid); font-size: 0.72rem; cursor: pointer;
+  font-family: var(--font-ui); transition: all 0.18s;
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+.btn-speech:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-glow); }
+.btn-speech.active { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+
+/* ── Toast notifications ──────────────────────────── */
+.toast-wrap {
+  position: fixed; bottom: 20px; right: 20px;
+  display: flex; flex-direction: column; gap: 8px;
+  z-index: 9000; pointer-events: none;
+}
+.toast {
+  background: var(--panel-2); border: 1px solid var(--border-hi);
+  border-radius: 8px; padding: 10px 14px;
+  font-size: 0.78rem; color: var(--text-hi);
+  animation: toast-in 0.3s ease;
+  max-width: 260px;
+}
+@keyframes toast-in { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+.toast.success { border-left: 3px solid var(--green); }
+.toast.error   { border-left: 3px solid var(--red); }
+.toast.info    { border-left: 3px solid var(--gold); }
+
+/* Responsive — smaller screens / Raspberry Pi */
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 220px 1fr;
+    grid-template-rows: 56px 1fr auto;
+    grid-template-areas:
+      "header header"
+      "main   main"
+      "sidebar rag";
+    height: auto; min-height: 100vh;
+    overflow: auto;
+  }
+  html, body { overflow: auto; }
+  .sidebar, .rag-panel { max-height: 340px; }
+}
+@media (max-width: 600px) {
+  .layout {
+    grid-template-columns: 1fr;
+    grid-template-areas: "header" "main" "rag" "sidebar";
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ═══ HEADER ════════════════════════════════════════ -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🤖</div>
+      <div>
+        <div>AfriBot-2063</div>
+        <div class="header-subtitle">Hybrid AI Teacher System</div>
+      </div>
+    </div>
+    <div class="header-spacer"></div>
+
+    <div class="pill pill-online" id="net-pill">
+      <span class="dot"></span><span id="net-label">Checking…</span>
+    </div>
+    <div class="pill pill-local" id="ai-pill">
+      <span class="dot"></span><span id="ai-label">AI</span>
+    </div>
+    <div class="pill" id="lang-pill" style="background:rgba(255,255,255,.04);color:var(--text-mid);border-color:var(--border)">
+      <span>🌐</span><span id="lang-label">—</span>
+    </div>
+  </header>
+
+  <!-- ═══ SIDEBAR ═══════════════════════════════════════ -->
+  <aside class="sidebar">
+
+    <!-- Mode -->
+    <div class="side-section">
+      <div class="side-title">AI Mode</div>
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="btn-auto" onclick="setMode('auto')">Auto</button>
+        <button class="mode-btn" id="btn-offline" onclick="setMode('offline')">Offline</button>
+        <button class="mode-btn" id="btn-online" onclick="setMode('online')">Online</button>
+      </div>
+    </div>
+
+    <!-- System status -->
+    <div class="side-section">
+      <div class="side-title">System Status</div>
+      <div class="metric-row">
+        <span class="metric-label">RAM</span>
+        <span class="metric-val" id="ram-val">—</span>
+      </div>
+      <div class="bar-wrap"><div class="bar-fill" id="ram-bar" style="width:0%"></div></div>
+      <div class="metric-row" style="margin-top:8px">
+        <span class="metric-label">CPU</span>
+        <span class="metric-val" id="cpu-val">—</span>
+      </div>
+      <div class="bar-wrap"><div class="bar-fill" id="cpu-bar" style="width:0%"></div></div>
+      <div class="metric-row" style="margin-top:10px">
+        <span class="metric-label">Ollama</span>
+        <span class="metric-val" id="ollama-val">—</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">DB Chunks</span>
+        <span class="metric-val" id="db-chunks">—</span>
+      </div>
+    </div>
+
+    <!-- Knowledge base -->
+    <div class="side-section">
+      <div class="side-title">Knowledge Base</div>
+      <div id="db-sources"></div>
+      <button class="btn-ingest" onclick="triggerIngest()">⟳ Re-index PDFs</button>
+    </div>
+
+    <!-- Quick questions -->
+    <div class="side-section">
+      <div class="side-title">Quick Topics</div>
+      <button class="quick-btn" onclick="sendQuick(this.dataset.q)" data-q="What is Faraday's Law?"><span class="lang-flag">🇬🇧</span>Faraday's Law</button>
+      <button class="quick-btn" onclick="sendQuick(this.dataset.q)" data-q="Explain magnetic permeability and reluctance"><span class="lang-flag">🇬🇧</span>Magnetic Permeability</button>
+      <button class="quick-btn" onclick="sendQuick(this.dataset.q)" data-q="How does a transformer work?"><span class="lang-flag">🇬🇧</span>Transformers</button>
+      <button class="quick-btn" onclick="sendQuick(this.dataset.q)" data-q="How does a DC motor work?"><span class="lang-flag">🇬🇧</span>DC Motors</button>
+      <button class="quick-btn" onclick="sendQuick(this.dataset.q)" data-q="ፋራዳይ ህግ ምንድን ነው?"><span class="lang-flag">🇪🇹</span>ፋራዳይ ህግ</button>
+      <button class="quick-btn" onclick="sendQuick(this.dataset.q)" data-q="ትራንስፎርመር እንዴት ይሠራል?"><span class="lang-flag">🇪🇹</span>ትራንስፎርመር</button>
+      <button class="quick-btn" onclick="sendQuick(this.dataset.q)" data-q="What is PWM motor control in robotics?"><span class="lang-flag">🇬🇧</span>PWM Motor Control</button>
+    </div>
+
+    <!-- Settings -->
+    <div class="side-section">
+      <div class="side-title">Settings</div>
+      <div class="toggle-row">
+        <span class="toggle-label">Auto-speak responses</span>
+        <div class="toggle" id="auto-speak-toggle" onclick="toggleSetting('autoSpeak')"></div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Show RAG context</span>
+        <div class="toggle on" id="show-rag-toggle" onclick="toggleSetting('showRag')"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN CHAT ══════════════════════════════════════ -->
+  <main class="main">
+    <div class="chat-area" id="chat-area">
+      <div class="welcome-card" id="welcome-card">
+        <div class="welcome-hex">⚡</div>
+        <div class="welcome-title">AfriBot-2063</div>
+        <div class="welcome-sub">
+          Your AI teacher for electrical machines, electronics &amp; robotics.<br>
+          Ask in <strong>English</strong> or <strong>አማርኛ</strong> — type or use the microphone.
+        </div>
+        <div class="welcome-tags">
+          <span class="welcome-tag">⚡ Electrical Machines</span>
+          <span class="welcome-tag">🧲 Magnetic Circuits</span>
+          <span class="welcome-tag">🔄 Transformers</span>
+          <span class="welcome-tag">🤖 Robotics</span>
+          <span class="welcome-tag">🇪🇹 Amharic</span>
+          <span class="welcome-tag">📴 Works Offline</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <div class="rec-bar" id="rec-bar">
+        <div class="rec-wave">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        Recording… click mic again to stop &amp; send
+      </div>
+      <div class="input-row">
+        <div class="input-wrap">
+          <textarea id="question" rows="1"
+            placeholder="Ask a question… / ጥያቄ ይጠይቁ…"
+            onkeydown="onKey(event)"
+            oninput="onInput(this)"></textarea>
+          <div class="lang-detect-badge" id="lang-badge">—</div>
+        </div>
+        <button class="btn-icon" id="mic-btn" onclick="toggleMic()" title="Voice input">🎤</button>
+        <button class="btn-send" id="send-btn" onclick="sendMessage()" disabled>Send</button>
+      </div>
+      <div class="input-hints">
+        <span>Enter to send</span>
+        <span>·</span>
+        <span>Shift+Enter new line</span>
+        <span>·</span>
+        <span>🎤 for voice</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- ═══ RAG PANEL ══════════════════════════════════════ -->
+  <aside class="rag-panel">
+    <div class="rag-header">
+      <span class="rag-title">Knowledge Context</span>
+      <span class="rag-count" id="rag-count">0 chunks</span>
+    </div>
+
+    <div class="rag-tabs">
+      <button class="rag-tab active" onclick="switchTab('context')">Context</button>
+      <button class="rag-tab" onclick="switchTab('search')">Search</button>
+    </div>
+
+    <!-- Context tab -->
+    <div class="rag-tab-content active" id="tab-context">
+      <div class="rag-body" id="rag-chunks">
+        <div class="rag-empty">
+          <div class="icon">📄</div>
+          Ask a question to see<br>relevant textbook passages
+        </div>
+      </div>
+    </div>
+
+    <!-- Search tab -->
+    <div class="rag-tab-content" id="tab-search">
+      <div class="rag-search-wrap">
+        <input class="rag-search" placeholder="Search knowledge base…"
+               id="rag-search-input"
+               onkeydown="if(event.key==='Enter')searchChunks()">
+      </div>
+      <div class="rag-body" id="rag-search-results">
+        <div class="rag-empty">
+          <div class="icon">🔍</div>
+          Type and press Enter to search<br>the PDF knowledge base
+        </div>
+      </div>
+    </div>
+
+    <!-- Speech controls -->
+    <div class="speech-controls">
+      <div class="speech-title">Speech Output</div>
+      <div class="speech-btns">
+        <button class="btn-speech" id="btn-play" onclick="speakLast()">▶ Play</button>
+        <button class="btn-speech" id="btn-stop" onclick="stopSpeech()">■ Stop</button>
+        <button class="btn-speech" id="btn-autospeak" onclick="toggleSetting('autoSpeak')">🔁 Auto</button>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<!-- Toast container -->
+<div class="toast-wrap" id="toasts"></div>
+
+<!-- ═══════════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════════ -->
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+const state = {
+  mode:       'auto',      // 'auto' | 'offline' | 'online'
+  lang:       null,
+  loading:    false,
+  recording:  false,
+  mediaRec:   null,
+  chunks:     [],
+  settings: {
+    autoSpeak: false,
+    showRag:   true,
+  },
+  lastAnswer: null,
+  currentSpeech: null,
+};
+
+const API = '';   // same origin; set to 'http://localhost:5000' if different
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  fetchStatus();
+  setInterval(fetchStatus, 8000);
+  autoGrow(document.getElementById('question'));
+});
+
+// ── Status polling ───────────────────────────────────────────────────────────
+async function fetchStatus() {
+  try {
+    const r = await fetch(API + '/api/status');
+    const d = await r.json();
+
+    // Network pill
+    const netPill = document.getElementById('net-pill');
+    const netLbl  = document.getElementById('net-label');
+    netPill.className = 'pill ' + (d.online ? 'pill-online' : 'pill-offline');
+    netLbl.textContent = d.online ? 'Online' : 'Offline';
+
+    // AI pill
+    const aiPill  = document.getElementById('ai-pill');
+    const aiLbl   = document.getElementById('ai-label');
+    if (d.online && state.mode !== 'offline') {
+      aiPill.className = 'pill pill-gem';
+      aiLbl.textContent = 'Gemini';
+    } else {
+      aiPill.className = 'pill pill-local';
+      aiLbl.textContent = 'Ollama';
+    }
+
+    // Sidebar metrics
+    const ramPct = Math.round(d.ram_used_pct);
+    document.getElementById('ram-val').textContent = `${d.ram_used_gb}GB / ${d.ram_total_gb}GB`;
+    document.getElementById('cpu-val').textContent = `${Math.round(d.cpu_pct)}%`;
+    const ramBar = document.getElementById('ram-bar');
+    ramBar.style.width = ramPct + '%';
+    ramBar.className = 'bar-fill' + (ramPct > 80 ? ' hi' : '');
+    document.getElementById('cpu-bar').style.width = d.cpu_pct + '%';
+    document.getElementById('ollama-val').textContent = d.ollama ? '✅ Running' : '⚠ Stopped';
+    document.getElementById('ollama-val').style.color = d.ollama ? 'var(--green)' : 'var(--red)';
+    document.getElementById('db-chunks').textContent = d.db_chunks.toLocaleString();
+
+    // Sources
+    const srcEl = document.getElementById('db-sources');
+    srcEl.innerHTML = (d.db_sources || []).map(s =>
+      `<span class="db-tag">📄 ${s}</span>`
+    ).join('');
+
+  } catch(e) {
+    document.getElementById('net-label').textContent = 'Error';
+  }
+}
+
+// ── Language detection (client-side heuristic) ────────────────────────────────
+function detectLangUI(text) {
+  if (!text.trim()) return null;
+  const ethiopicRe = /[\u1200-\u137F\u1380-\u139F]/g;
+  const matches = (text.match(ethiopicRe) || []).length;
+  const alphas  = (text.match(/[^\s\d\W]/g) || []).length;
+  if (alphas > 0 && matches / alphas > 0.3) return 'am';
+  return 'en';
+}
+
+function onInput(el) {
+  autoGrow(el);
+  const lang = detectLangUI(el.value);
+  state.lang = lang;
+  const badge = document.getElementById('lang-badge');
+  const langPill = document.getElementById('lang-pill');
+  const langLbl  = document.getElementById('lang-label');
+  if (lang === 'am') {
+    badge.textContent = '🇪🇹 Amharic';
+    badge.classList.add('active');
+    langLbl.textContent = 'Amharic';
+    langPill.style.color = 'var(--gold)';
+  } else if (lang === 'en') {
+    badge.textContent = '🇬🇧 English';
+    badge.classList.add('active');
+    langLbl.textContent = 'English';
+    langPill.style.color = 'var(--text-mid)';
+  } else {
+    badge.textContent = '—';
+    badge.classList.remove('active');
+    langLbl.textContent = '—';
+  }
+  document.getElementById('send-btn').disabled = !el.value.trim();
+}
+
+function autoGrow(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 140) + 'px';
+}
+
+function onKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+// ── Send message ─────────────────────────────────────────────────────────────
+async function sendMessage() {
+  const el = document.getElementById('question');
+  const q  = el.value.trim();
+  if (!q || state.loading) return;
+
+  el.value = ''; autoGrow(el);
+  document.getElementById('send-btn').disabled = true;
+  document.getElementById('lang-badge').textContent = '—';
+  document.getElementById('lang-badge').classList.remove('active');
+
+  hideWelcome();
+  addMessage('user', q);
+  showThinking();
+  state.loading = true;
+
+  try {
+    const res = await fetch(API + '/api/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question:     q,
+        force_offline: state.mode === 'offline',
+        top_k: 4,
+      }),
+    });
+    const d = await res.json();
+
+    hideThinking();
+    state.loading = false;
+
+    if (d.error) {
+      addMessage('bot', `❌ Error: ${d.error}`, 'en', 'fallback', 0);
+      showToast('Error: ' + d.error, 'error');
+      return;
+    }
+
+    addMessage('bot', d.answer, d.language, d.source, d.elapsed_s);
+    state.lastAnswer = d.answer;
+
+    if (state.settings.showRag) {
+      renderChunks(d.chunks || []);
+    }
+
+    if (state.settings.autoSpeak) {
+      speakText(d.answer, d.language);
+    }
+
+    document.getElementById('lang-label').textContent =
+      d.language === 'am' ? 'Amharic' : 'English';
+
+  } catch(e) {
+    hideThinking();
+    state.loading = false;
+    addMessage('bot', '❌ Could not reach AfriBot server. Is the server running?', 'en', 'fallback', 0);
+    showToast('Server unreachable', 'error');
+  }
+}
+
+function sendQuick(q) {
+  document.getElementById('question').value = q;
+  onInput(document.getElementById('question'));
+  sendMessage();
+}
+
+// ── Chat rendering ────────────────────────────────────────────────────────────
+let thinkingEl = null;
+
+function hideWelcome() {
+  const wc = document.getElementById('welcome-card');
+  if (wc) wc.style.display = 'none';
+}
+
+function addMessage(role, text, lang, source, elapsed) {
+  const area = document.getElementById('chat-area');
+  const div  = document.createElement('div');
+  div.className = `msg ${role}` + (lang === 'am' ? ' am' : '');
+
+  const avatar = role === 'user'
+    ? '<div class="avatar">👤</div>'
+    : '<div class="avatar">🤖</div>';
+
+  let meta = '';
+  if (role === 'bot' && source) {
+    const badgeClass = `badge-${source}`;
+    const labels = { gemini: '☁ Gemini', local: '🖥 Ollama', fallback: '⚠ Fallback' };
+    const label  = labels[source] || source;
+    const langFlag = lang === 'am' ? '🇪🇹 Amharic' : '🇬🇧 English';
+    const timeStr  = elapsed ? `${elapsed}s` : '';
+    meta = `
+      <div class="bubble-meta">
+        <span class="source-badge ${badgeClass}">${label}</span>
+        <span>${langFlag}</span>
+        ${timeStr ? `<span>${timeStr}</span>` : ''}
+      </div>`;
+  }
+
+  // Render basic markdown-ish: bold, code
+  const html = renderText(text);
+
+  div.innerHTML = `
+    ${avatar}
+    <div class="bubble">${html}${meta}</div>
+  `;
+
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function renderText(text) {
+  // Basic formatting
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code style="background:var(--ink-3);padding:1px 5px;border-radius:3px;font-family:var(--font-mono);font-size:0.85em">$1</code>')
+    .replace(/\n/g, '<br>');
+}
+
+function showThinking() {
+  const area = document.getElementById('chat-area');
+  thinkingEl = document.createElement('div');
+  thinkingEl.className = 'msg bot';
+  thinkingEl.innerHTML = `
+    <div class="avatar">🤖</div>
+    <div class="thinking">
+      <div class="dot-wave">
+        <span></span><span></span><span></span>
+      </div>
+    </div>`;
+  area.appendChild(thinkingEl);
+  area.scrollTop = area.scrollHeight;
+}
+
+function hideThinking() {
+  if (thinkingEl) { thinkingEl.remove(); thinkingEl = null; }
+}
+
+// ── RAG context panel ─────────────────────────────────────────────────────────
+function renderChunks(chunks) {
+  const container = document.getElementById('rag-chunks');
+  document.getElementById('rag-count').textContent = `${chunks.length} chunks`;
+
+  if (!chunks.length) {
+    container.innerHTML = `<div class="rag-empty"><div class="icon">📭</div>No context found</div>`;
+    return;
+  }
+
+  container.innerHTML = chunks.map((c, i) => {
+    const score   = c.similarity || 0;
+    const scoreHi = score > 0.7 ? 'hi' : '';
+    return `
+      <div class="chunk-card" onclick="expandChunk(${i})">
+        <div class="chunk-src">
+          <span class="chunk-filename">📄 ${c.source}</span>
+          <span class="chunk-score ${scoreHi}">${(score*100).toFixed(0)}%</span>
+        </div>
+        <div class="chunk-text" id="chunk-text-${i}">${escHtml(c.text)}</div>
+      </div>`;
+  }).join('');
+}
+
+function expandChunk(i) {
+  const el = document.getElementById(`chunk-text-${i}`);
+  if (el.style.webkitLineClamp === 'unset') {
+    el.style.webkitLineClamp = '4';
+  } else {
+    el.style.webkitLineClamp = 'unset';
+    el.style.display = 'block';
+  }
+}
+
+async function searchChunks() {
+  const q = document.getElementById('rag-search-input').value.trim();
+  if (!q) return;
+  const res = document.getElementById('rag-search-results');
+  res.innerHTML = `<div class="rag-empty"><div class="icon">⏳</div>Searching…</div>`;
+  try {
+    const r = await fetch(API + `/api/chunks?q=${encodeURIComponent(q)}&k=6`);
+    const d = await r.json();
+    if (!d.chunks || !d.chunks.length) {
+      res.innerHTML = `<div class="rag-empty"><div class="icon">📭</div>No results found</div>`;
+      return;
+    }
+    res.innerHTML = d.chunks.map((c, i) => {
+      const score   = c.similarity || 0;
+      const scoreHi = score > 0.7 ? 'hi' : '';
+      return `
+        <div class="chunk-card">
+          <div class="chunk-src">
+            <span class="chunk-filename">📄 ${c.source}</span>
+            <span class="chunk-score ${scoreHi}">${(score*100).toFixed(0)}%</span>
+          </div>
+          <div class="chunk-text">${escHtml(c.text)}</div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    res.innerHTML = `<div class="rag-empty"><div class="icon">❌</div>Search failed</div>`;
+  }
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.rag-tab').forEach((t,i) => {
+    t.classList.toggle('active', (i === 0 && name==='context') || (i === 1 && name==='search'));
+  });
+  document.getElementById('tab-context').classList.toggle('active', name === 'context');
+  document.getElementById('tab-search').classList.toggle('active',  name === 'search');
+}
+
+// ── Mode ─────────────────────────────────────────────────────────────────────
+function setMode(m) {
+  state.mode = m;
+  ['auto','offline','online'].forEach(id => {
+    document.getElementById('btn-'+id).classList.toggle('active', id === m);
+  });
+  showToast(`Mode: ${m.toUpperCase()}`, 'info');
+  fetchStatus();
+}
+
+// ── Settings toggles ──────────────────────────────────────────────────────────
+function toggleSetting(key) {
+  state.settings[key] = !state.settings[key];
+  const toggleMap = { autoSpeak: 'auto-speak-toggle', showRag: 'show-rag-toggle' };
+  const el = document.getElementById(toggleMap[key]);
+  if (el) el.classList.toggle('on', state.settings[key]);
+  if (key === 'autoSpeak') {
+    document.getElementById('btn-autospeak').classList.toggle('active', state.settings.autoSpeak);
+  }
+}
+
+// ── Speech ───────────────────────────────────────────────────────────────────
+function speakLast() {
+  if (state.lastAnswer) speakText(state.lastAnswer, state.lang || 'en');
+}
+
+function speakText(text, lang) {
+  if (!('speechSynthesis' in window)) {
+    showToast('Speech not supported in this browser', 'error');
+    return;
+  }
+  stopSpeech();
+  const utt  = new SpeechSynthesisUtterance(text);
+  utt.lang   = lang === 'am' ? 'am-ET' : 'en-US';
+  utt.rate   = 0.9;
+  utt.pitch  = 1;
+
+  // Try to pick a good voice
+  const voices = window.speechSynthesis.getVoices();
+  const match  = voices.find(v => v.lang.startsWith(lang === 'am' ? 'am' : 'en'));
+  if (match) utt.voice = match;
+
+  state.currentSpeech = utt;
+  window.speechSynthesis.speak(utt);
+  document.getElementById('btn-play').classList.add('active');
+  utt.onend = () => document.getElementById('btn-play').classList.remove('active');
+}
+
+function stopSpeech() {
+  window.speechSynthesis.cancel();
+  document.getElementById('btn-play').classList.remove('active');
+}
+
+// ── Voice recording ───────────────────────────────────────────────────────────
+async function toggleMic() {
+  if (state.recording) {
+    stopRecording();
+  } else {
+    startRecording();
+  }
+}
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const rec    = new MediaRecorder(stream);
+    const bufs   = [];
+
+    rec.ondataavailable = e => { if (e.data.size > 0) bufs.push(e.data); };
+    rec.onstop = async () => {
+      const blob = new Blob(bufs, { type: 'audio/webm' });
+      stream.getTracks().forEach(t => t.stop());
+      await sendVoice(blob);
+    };
+
+    rec.start();
+    state.mediaRec = rec;
+    state.recording = true;
+
+    document.getElementById('mic-btn').classList.add('recording');
+    document.getElementById('mic-btn').textContent = '⏹';
+    document.getElementById('rec-bar').classList.add('active');
+
+  } catch(e) {
+    showToast('Microphone access denied', 'error');
+  }
+}
+
+function stopRecording() {
+  if (state.mediaRec && state.recording) {
+    state.mediaRec.stop();
+    state.recording = false;
+    document.getElementById('mic-btn').classList.remove('recording');
+    document.getElementById('mic-btn').textContent = '🎤';
+    document.getElementById('rec-bar').classList.remove('active');
+  }
+}
+
+async function sendVoice(blob) {
+  showToast('🎤 Transcribing voice…', 'info');
+  hideWelcome();
+  showThinking();
+  state.loading = true;
+
+  const fd = new FormData();
+  fd.append('audio', blob, 'recording.webm');
+
+  try {
+    const res = await fetch(API + '/api/voice', { method: 'POST', body: fd });
+    const d   = await res.json();
+    hideThinking();
+    state.loading = false;
+
+    if (d.error) {
+      addMessage('bot', `❌ Voice error: ${d.error}`, 'en', 'fallback', 0);
+      showToast(d.error, 'error');
+      return;
+    }
+
+    // Show transcript as user message
+    addMessage('user', `🎤 ${d.transcript}`);
+    addMessage('bot', d.answer, d.language, d.source, null);
+    state.lastAnswer = d.answer;
+
+    if (state.settings.showRag) renderChunks(d.chunks || []);
+    if (state.settings.autoSpeak) speakText(d.answer, d.language);
+
+  } catch(e) {
+    hideThinking();
+    state.loading = false;
+    showToast('Voice processing failed', 'error');
+  }
+}
+
+// ── Ingest ────────────────────────────────────────────────────────────────────
+async function triggerIngest() {
+  showToast('⟳ Re-indexing PDFs in background…', 'info');
+  try {
+    await fetch(API + '/api/ingest', { method: 'POST' });
+    setTimeout(fetchStatus, 5000);
+  } catch(e) {
+    showToast('Ingest request failed', 'error');
+  }
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(msg, type = 'info') {
+  const wrap = document.getElementById('toasts');
+  const el   = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; setTimeout(() => el.remove(), 300); }, 3000);
+}
+
+// ── Util ──────────────────────────────────────────────────────────────────────
+function escHtml(t) {
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Load voices for TTS
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+}
+</script>
+</body>
+</html>

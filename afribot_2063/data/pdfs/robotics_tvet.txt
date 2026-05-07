@@ -1,0 +1,162 @@
+AFRIBOT-2063 KNOWLEDGE MODULE: ROBOTICS FUNDAMENTALS
+Source: AfriBot-2063 TVET Curriculum | Language: English + Amharic context
+
+═══════════════════════════════════════════════════════════
+CHAPTER 1: INTRODUCTION TO ROBOTICS
+═══════════════════════════════════════════════════════════
+
+Definition of a Robot:
+A robot is an automatically controlled, reprogrammable, multipurpose machine that can
+be programmed to perform a variety of tasks. Robots manipulate materials, parts, or tools
+through variable programmed motions and can perform multiple tasks.
+
+Key Characteristics of Robots:
+1. Sensing — ability to perceive the environment (sensors: IR, ultrasonic, camera)
+2. Actuation — ability to move (motors, servos, pneumatics, hydraulics)
+3. Intelligence — decision making (microcontrollers, AI, embedded systems)
+4. Power supply — batteries, solar, wired power
+
+Types of Robots by Application:
+• Industrial robots: welding, assembly, painting, material handling
+• Service robots: medical, agricultural, domestic cleaning
+• Educational robots: Arduino, Raspberry Pi platforms
+• Mobile robots: wheeled, legged, aerial (drones)
+• Collaborative robots (cobots): work alongside humans safely
+
+═══════════════════════════════════════════════════════════
+CHAPTER 2: ROBOT COMPONENTS
+═══════════════════════════════════════════════════════════
+
+2.1 Actuators (Motors)
+DC Motor:
+  - Runs on direct current
+  - Speed controlled via PWM (Pulse Width Modulation)
+  - Direction controlled by H-Bridge circuit (e.g. L298N)
+  - Equation: Speed ∝ Voltage; Torque ∝ Current
+
+Servo Motor:
+  - Provides precise angular control (0°–180° or 0°–360°)
+  - Controlled by PWM signal: pulse width determines angle
+  - 1ms pulse = 0°, 1.5ms = 90°, 2ms = 180°
+  - Used for: robotic arms, steering, grippers
+
+Stepper Motor:
+  - Moves in discrete steps (1.8° per step typical)
+  - Full step, half step, microstepping modes
+  - No feedback needed (open-loop position control)
+  - Used for: 3D printers, CNC machines
+
+2.2 Sensors
+Ultrasonic Sensor (HC-SR04):
+  - Measures distance using sound waves
+  - Range: 2cm – 400cm
+  - Formula: Distance = (Time × Speed_of_sound) / 2
+  - Speed of sound ≈ 343 m/s at 20°C
+
+Infrared (IR) Sensor:
+  - Detects obstacles or line (black/white surface)
+  - Used in line-following robots
+  - Output: digital HIGH (obstacle) or LOW (clear)
+
+Temperature Sensor (LM35, DS18B20):
+  - LM35: analog output, 10mV per °C
+  - DS18B20: digital, 1-Wire protocol
+
+Camera / Vision:
+  - Used for object recognition, face detection
+  - OpenCV library for image processing on Raspberry Pi
+
+2.3 Microcontrollers
+Arduino Uno:
+  - ATmega328P microcontroller
+  - 14 digital I/O pins, 6 analog inputs
+  - 16 MHz clock, 32KB flash memory
+  - Programmed in C/C++ (Arduino IDE)
+
+Raspberry Pi:
+  - Full Linux computer on a single board
+  - 4 cores, 1–8GB RAM
+  - GPIO pins for hardware control
+  - Runs Python, supports AI/ML workloads
+  - Ideal for AfriBot-2063 deployment
+
+ESP32:
+  - Dual-core 240MHz processor
+  - Built-in Wi-Fi and Bluetooth
+  - Ideal for IoT and wireless robots
+
+═══════════════════════════════════════════════════════════
+CHAPTER 3: MOTOR CONTROL CIRCUITS
+═══════════════════════════════════════════════════════════
+
+H-Bridge Circuit:
+- Allows a DC motor to run forwards and backwards
+- Four transistors (or MOSFETs) arranged in H shape
+- L298N driver IC: controls two DC motors
+  • IN1=HIGH, IN2=LOW → Motor forward
+  • IN1=LOW, IN2=HIGH → Motor reverse
+  • IN1=IN2=LOW → Motor stop (coast)
+  • ENA pin: PWM speed control
+
+PWM (Pulse Width Modulation):
+- Controls average voltage to motor by switching rapidly
+- Duty Cycle = (ON time / Period) × 100%
+- 0% duty = motor off, 100% duty = full speed
+- Arduino: analogWrite(pin, 0-255) generates PWM
+- Example: analogWrite(ENA, 128) = 50% speed
+
+═══════════════════════════════════════════════════════════
+CHAPTER 4: ROBOT PROGRAMMING CONCEPTS
+═══════════════════════════════════════════════════════════
+
+Line Following Algorithm:
+  if left_sensor == BLACK and right_sensor == BLACK:
+      go_forward()
+  elif left_sensor == BLACK and right_sensor == WHITE:
+      turn_left()
+  elif left_sensor == WHITE and right_sensor == BLACK:
+      turn_right()
+  else:
+      stop()
+
+PID Control:
+  - Proportional-Integral-Derivative controller
+  - Used for smooth, accurate control
+  - Error = Setpoint - Measured_Value
+  - P term: proportional to error (fast response)
+  - I term: eliminates steady-state error
+  - D term: dampens oscillations
+  - Output = Kp×Error + Ki×∫Error + Kd×(dError/dt)
+
+Obstacle Avoidance Algorithm:
+  if distance < threshold:
+      stop()
+      turn_right(90°)
+  else:
+      go_forward()
+
+═══════════════════════════════════════════════════════════
+CHAPTER 5: ETHIOPIAN ROBOTICS CONTEXT
+═══════════════════════════════════════════════════════════
+
+AfriBot Vision:
+The AfriBot-2063 project aligns with Ethiopia's Digital Ethiopia 2025 strategy,
+aiming to train TVET students in robotics, AI, and embedded systems.
+
+Key applications for Ethiopia:
+• Agricultural robots: crop monitoring, precision irrigation
+• Educational robots: STEM learning in rural schools
+• Medical robots: delivery in low-resource health centres
+• Solar-powered autonomous robots for remote areas
+
+TVET Competency Standards (Ethiopia):
+Level 1: Basic electronics, breadboard circuits
+Level 2: Arduino programming, sensor integration
+Level 3: Raspberry Pi, motor control, basic AI
+Level 4: ROS (Robot Operating System), computer vision
+Level 5: System integration, robot deployment
+
+ሮቦቲክስ በአማርኛ (Robotics in Amharic):
+ሮቦት ማለት በራሱ ትዕዛዝ ወይም ፕሮግራም የሚሠራ ማሽን ነው።
+የሮቦት ዋና ክፍሎች፡ ሴንሰሮች (sensors)፣ ሞተሮች (motors)፣ ማይክሮ-ኮምፒዩተር
+ሮቦቶች በትምህርት፣ በሕክምና፣ በእርሻ እና በኢንዱስትሪ ያገለግላሉ።

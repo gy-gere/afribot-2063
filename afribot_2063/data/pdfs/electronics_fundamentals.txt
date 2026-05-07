@@ -1,0 +1,170 @@
+AFRIBOT-2063 KNOWLEDGE MODULE: ELECTRONICS FUNDAMENTALS
+Source: AfriBot-2063 TVET Curriculum | Level: TVET 1–3
+
+═══════════════════════════════════════════════════════════
+CHAPTER 1: BASIC ELECTRICAL QUANTITIES
+═══════════════════════════════════════════════════════════
+
+Voltage (V):
+- Electric potential difference between two points
+- Unit: Volt (V)
+- Measured with a voltmeter (connected in parallel)
+- Sources: batteries, generators, solar panels
+
+Current (I):
+- Flow of electric charge through a conductor
+- Unit: Ampere (A)
+- Measured with an ammeter (connected in series)
+- Conventional current flows from + to −
+
+Resistance (R):
+- Opposition to the flow of current
+- Unit: Ohm (Ω)
+- Depends on material, length, cross-section, temperature
+- R = ρL/A where ρ = resistivity, L = length, A = area
+
+Power (P):
+- Rate of energy consumption or delivery
+- P = V × I = I²R = V²/R
+- Unit: Watt (W)
+
+Energy (E):
+- E = P × t (Power × time)
+- Unit: Joule (J) or kilowatt-hour (kWh)
+
+═══════════════════════════════════════════════════════════
+CHAPTER 2: OHM'S LAW
+═══════════════════════════════════════════════════════════
+
+Statement: The current through a conductor is directly proportional to the voltage
+across it and inversely proportional to its resistance (at constant temperature).
+
+Formula: V = I × R   →   I = V/R   →   R = V/I
+
+Example: A 12V battery connected to a 4Ω resistor:
+  I = V/R = 12/4 = 3A
+  P = V×I = 12×3 = 36W
+
+Kirchhoff's Voltage Law (KVL):
+- The sum of all voltages around a closed loop = 0
+- ΣV = 0 (energy conservation)
+
+Kirchhoff's Current Law (KCL):
+- The sum of currents entering a node = sum leaving
+- ΣI_in = ΣI_out (charge conservation)
+
+═══════════════════════════════════════════════════════════
+CHAPTER 3: CIRCUIT COMPONENTS
+═══════════════════════════════════════════════════════════
+
+Resistors:
+- Series: R_total = R1 + R2 + R3 + …
+- Parallel: 1/R_total = 1/R1 + 1/R2 + 1/R3 + …
+- Colour code: Black=0, Brown=1, Red=2, Orange=3, Yellow=4,
+               Green=5, Blue=6, Violet=7, Grey=8, White=9
+
+Capacitors:
+- Stores electric charge (energy in electric field)
+- C = Q/V, Unit: Farad (F)
+- Series: 1/C_total = 1/C1 + 1/C2
+- Parallel: C_total = C1 + C2
+- Charging: V(t) = Vs(1 - e^(-t/RC))  time constant τ = RC
+- Applications: filtering, timing, energy storage
+
+Inductors:
+- Stores energy in magnetic field
+- V = L × (dI/dt), Unit: Henry (H)
+- Series: L_total = L1 + L2
+- Opposes changes in current
+- Applications: filters, transformers, motors
+
+Diodes:
+- Allows current in one direction only (anode → cathode)
+- Forward voltage drop: Si ≈ 0.7V, Ge ≈ 0.3V
+- Applications: rectification (AC→DC), protection, LEDs
+
+Transistors (BJT):
+- NPN: current from collector to emitter when base is HIGH
+- PNP: current flows when base is LOW
+- Acts as: switch or amplifier
+- I_C = β × I_B (β = current gain, typically 100–300)
+
+MOSFETs:
+- Voltage-controlled switch (gate controls drain-source)
+- N-channel: HIGH gate turns ON
+- Used in motor drivers, power electronics
+- Very high input impedance (no base current needed)
+
+═══════════════════════════════════════════════════════════
+CHAPTER 4: AC CIRCUITS
+═══════════════════════════════════════════════════════════
+
+AC Waveform:
+- v(t) = Vm × sin(ωt + φ)
+- Vm = peak voltage, ω = 2πf (angular frequency)
+- f = frequency (Hz), T = 1/f (period)
+- Ethiopian mains: 220V RMS, 50Hz
+
+RMS Values:
+- Vrms = Vm / √2 ≈ 0.707 × Vm
+- Irms = Im / √2
+- P = Vrms × Irms × cos(φ) (real power)
+
+Impedance:
+- Resistor:  Z_R = R (no phase shift)
+- Capacitor: Z_C = 1/(jωC) = -j/(ωC) (current leads voltage by 90°)
+- Inductor:  Z_L = jωL (voltage leads current by 90°)
+- Total impedance: Z = R + j(X_L - X_C)
+
+Resonance:
+- Occurs when X_L = X_C
+- Resonant frequency: f₀ = 1/(2π√LC)
+- At resonance: impedance is purely resistive (minimum Z)
+
+Power Factor:
+- PF = cos(φ) = P / S
+- P = real power (W), S = apparent power (VA)
+- Q = reactive power (VAR)
+- S² = P² + Q²
+
+═══════════════════════════════════════════════════════════
+CHAPTER 5: SEMICONDUCTORS & DIGITAL ELECTRONICS
+═══════════════════════════════════════════════════════════
+
+Logic Gates:
+- AND: output HIGH only if ALL inputs HIGH
+- OR:  output HIGH if ANY input HIGH
+- NOT: inverts input
+- NAND, NOR: AND/OR followed by NOT
+- XOR: output HIGH if inputs DIFFERENT
+
+Number Systems:
+- Binary (base-2): 0, 1 — used in digital circuits
+- Hexadecimal (base-16): 0-9, A-F — compact binary representation
+- Conversion: 1010₂ = A₁₆ = 10₁₀
+
+Flip-Flops:
+- SR Flip-Flop: Set/Reset memory element
+- D Flip-Flop: Data latch, captures input on clock edge
+- JK Flip-Flop: eliminates invalid state of SR
+
+ADC/DAC:
+- ADC (Analog-to-Digital): converts sensor voltages to digital numbers
+- DAC (Digital-to-Analog): converts digital values back to analog
+- Arduino ADC: 10-bit resolution, 0–5V range → 0–1023 values
+- Resolution = Vref / (2^n - 1)  e.g. 5/1023 ≈ 4.9mV per step
+
+═══════════════════════════════════════════════════════════
+AMHARIC SUMMARY — ኤሌክትሮኒክስ ማጠቃለያ
+═══════════════════════════════════════════════════════════
+
+ቮልቴጅ (ቮልት): በሁለት ነጥቦች መካከል ያለው የኤሌክትሪክ ልዩነት
+ፍሰት (አምፔር): ኤሌክትሮኖች በሽቦ ውስጥ የሚፈሱበት ፍጥነት
+ተቃዋሚ (ኦም): ፍሰቱን የሚቋቋም ኃይል
+የኦም ህግ: V = I × R
+ሃይል (ዋት): P = V × I
+
+ኮንደንሰር (Capacitor): ኤሌክትሪካዊ ኃይልን ያከምቻል
+ኮይል (Inductor): በማግኔቲክ መስክ ኃይልን ያከምቻል
+ዳዮድ (Diode): ኤሌክትሪክን በአንድ አቅጣጫ ብቻ ያሳልፋል
+ትራንዚስተር: እንደ ማብሪያ/ማጠፊያ ወይም አምፕሊፋዬር ሆኖ ይሠራል
