@@ -22,7 +22,7 @@ To build a hybrid intelligent robot that can operate both online and offline, su
 ## ⚙️ Technologies Used
 - Python
 - Flutter (UI)
-- ESP32 / Arduino
+- ESP32/ Custom PCB
 - AI APIs (e.g., Gemini)
 - Offline AI model (fallback system)
 
