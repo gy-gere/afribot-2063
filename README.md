@@ -238,5 +238,5 @@ Edit `LED_THINKING` and `LED_SPEAKING` pin numbers to match your wiring.
 
 ## License
 
-Educational use — Debre Berhan University, Ethiopia.
+Educational use - Debre Berhan University, Ethiopia.
 AfriBot-2063 system by: based on the AfriBot-2063 specification.
